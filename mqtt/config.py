@@ -10,8 +10,6 @@ class Config:
         self.ttn_app_id = ""
         self.ttn_access_key = ""
         self.ttn_mqtt_address = ""
-        self.ttn_discovery_address = ""
-        self.ttn_reconnect = ""
 
     @classmethod
     def from_json(cls) -> "Config":
