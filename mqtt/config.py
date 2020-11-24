@@ -12,7 +12,7 @@ class Config:
         self.ttn_mqtt_address = ""
 
     @classmethod
-    def from_json(cls) -> "Config":
+    def from_json(cls) -> dict:
         if not os.path.exists("config.json"):
             with open("config.json", "w") as fh:
                 config = cls()
