@@ -5,6 +5,9 @@ from django.db.models import Model, CharField, IntegerField, FloatField, DateTim
 class Device(Model):
     device_id = CharField(default="", max_length=255)
 
+    def __str__(self):
+        return self.device_id
+
 
 class Coordinate(Model):
     lat = FloatField(default=0)
@@ -28,11 +31,17 @@ class RawData(Model):
 class RoadType(Model):
     highway_type = CharField(default="", max_length=255)
 
+    def __str__(self):
+        return self.highway_type
+
 
 class RoadStretch(Model):
     osm_id = CharField(default="", max_length=255)
     road_type = ForeignKey(RoadType, on_delete=CASCADE)
     coordinates = ManyToManyField(Coordinate)
+
+    def __str__(self):
+        return self.osm_id
 
 
 class Road(Model):
