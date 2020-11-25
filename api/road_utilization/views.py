@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.views.generic.base import View
 
 from api import scripts
-from road_utilization.models import RawData
+from road_utilization.models import RawData, Device
 
 
 class ImportRoads(View):
@@ -17,12 +17,18 @@ class PutView(View):
 
     def post(self, request):
         data = json.loads(request.body)
-        obj = RawData()
-        obj.device_id = data["dev_id"]
-        obj.rssi = data["metadata"]["rssi"]
-        obj.timestamp = data["metadata"]["timestamp"]
-        obj.count_car = data["payload_fields"]["count_car"]
-        obj.count_truck = data["payload_fields"]["count_truck"]
-        obj.battery = data["payload_fields"]["battery"]
-        obj.save()
+        device, created = Device.objects.get_or_create(device_id=data["dev_id"])
+        if created:
+            device.save()
+
+        raw_data = RawData(
+            rssi=data["metadata"]["rssi"],
+            timestamp=data["metadata"]["timestamp"],
+            count_car=data["payload_fields"]["count_car"],
+            count_truck=data["payload_fields"]["count_truck"],
+            battery=data["payload_fields"]["battery"],
+            device=device
+        )
+        raw_data.save()
+        
         return HttpResponse("OK", status=200)
