@@ -23,7 +23,7 @@ class PutView(View):
 
         raw_data = RawData(
             rssi=data["metadata"]["gateways"][0]["rssi"],
-            timestamp=data["metadata"]["timestamp"],
+            timestamp=data["metadata"]["gateways"][0]["timestamp"],
             count_car=data["payload_fields"]["count_car"],
             count_truck=data["payload_fields"]["count_truck"],
             battery=data["payload_fields"]["battery"],
