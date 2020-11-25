@@ -104,6 +104,12 @@ void transmitPacket(uint16_t carCount, uint16_t truckCount)
 	LMIC_setTxData2(1, (uint8_t *)&packet, sizeof(vehicle_statistics_packet_t), 0);
 }
 
+void startSensorReading()
+{
+	Wire.beginTransmission(ULTRASONIC_ADDRESS);
+	Wire.write(0x51); // trigger sensor reading
+	Wire.endTransmission();
+}
 uint16_t readDistance()
 {
 	Wire.requestFrom((uint16_t)ULTRASONIC_ADDRESS, (uint8_t)2, (bool)true);
@@ -177,6 +183,8 @@ void loop()
 	static uint16_t recentMaxReading = 0;
 	static bool carDetectionCount = 0;
 
+	startSensorReading();
+	delay(100);
 	uint16_t distance = readDistance();
 	if(distance != 0xffff)
 	{
@@ -206,6 +214,4 @@ void loop()
 	{
 		LOG(ERROR, "Failed reading data from sensor!");
 	}
-
-	delay(95);
 }
