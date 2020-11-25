@@ -22,7 +22,7 @@ class PutView(View):
             device.save()
 
         raw_data = RawData(
-            rssi=data["metadata"]["rssi"],
+            rssi=data["metadata"]["gateways"]["rssi"],
             timestamp=data["metadata"]["timestamp"],
             count_car=data["payload_fields"]["count_car"],
             count_truck=data["payload_fields"]["count_truck"],
