@@ -6,9 +6,14 @@ class Device(Model):
     device_id = CharField(default="", max_length=255)
 
 
+class Coordinate(Model):
+    lat = FloatField(default=0)
+    lon = FloatField(default=0)
+
+
 class SensorPosition(Model):
     device = ForeignKey(Device, on_delete=CASCADE)
-    geo_uri = CharField(default="", max_length=255)
+    coordinate = ForeignKey(Coordinate, on_delete=CASCADE)
 
 
 class RawData(Model):
@@ -18,11 +23,6 @@ class RawData(Model):
     battery = FloatField(default=0)
     timestamp = DateTimeField()
     rssi = IntegerField(default=0)
-
-
-class Coordinate(Model):
-    lat = FloatField(default=0)
-    lon = FloatField(default=0)
 
 
 class RoadType(Model):
