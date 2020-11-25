@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 from django.http import HttpResponse
 from django.views.generic.base import View
@@ -21,14 +22,17 @@ class PutView(View):
         if created:
             device.save()
 
+        datetime_string = data["metadata"]["time"]
+        datetime_string = datetime_string.split('.')[0]
+        time = datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S")
         raw_data = RawData(
             rssi=data["metadata"]["gateways"][0]["rssi"],
-            timestamp=data["metadata"]["gateways"][0]["timestamp"],
+            timestamp=time,
             count_car=data["payload_fields"]["count_car"],
             count_truck=data["payload_fields"]["count_truck"],
             battery=data["payload_fields"]["battery"],
             device=device
         )
         raw_data.save()
-        
+
         return HttpResponse("OK", status=200)
