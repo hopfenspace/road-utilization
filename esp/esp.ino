@@ -18,20 +18,22 @@
 #define OLED_SCL 15
 
 #define VBAT_PIN 35
-#define ULTRASONIC_ADDRESS 0xE0
+//#define ULTRASONIC_ADDRESS 0xE0
+// see https://github.com/tsayles/Photon-I2C-RangeFinder/blob/master/firmware/weather-ranger.ino#L70
+#define ULTRASONIC_ADDRESS 0x70
 
 #define TRANSMIT_FIRST (TRANSMIT_INTERVAL * 60 * 1000)
 
 // calculate the amount of samples for a car of `length` traveling with `speed`
-// length / (speed / 3.6 * 100 / 10)
-//                               ^ we sample at 10Hz
+// length / (speed / 3.6 * 100 / 9.090909)
+//                               ^ we sample every 110ms (9.090909Hz)
 //                         ^ times 100 converts m/s to cm/s
 //                   ^ division by 3.6 converts km/h to m/s
 //           ^ in km/h
 // ^ in cm
 // the shorted form is length / (speed / 0.36)
-#define MIN_SAMPLES_CAR ((uint16_t)(MIN_LENGTH_CAR / (SPEED_LIMIT / 0.36)))
-#define MIN_SAMPLES_TRUCK ((uint16_t)(MIN_LENGTH_TRUCK / (SPEED_LIMIT / 0.36)))
+#define MIN_SAMPLES_CAR ((uint16_t)(MIN_LENGTH_CAR / (SPEED_LIMIT / 3.6 * 100 / 9.090909)))
+#define MIN_SAMPLES_TRUCK ((uint16_t)(MIN_LENGTH_TRUCK / (SPEED_LIMIT / 3.6 * 100 / 9.090909)))
 
 typedef struct __attribute__((packed))
 {
@@ -52,8 +54,9 @@ void os_getArtEui (u1_t* buf) { }
 void os_getDevEui (u1_t* buf) { }
 void os_getDevKey (u1_t* buf) { }
 
+/*
 // Pin mapping
-// see https://github.com/cyberman54/ESP32-Paxcounter/blob/master/src/lorawan.cpp#L44
+// see https://github.com/cyberman54/ESP32-Paxcounter/blob/master/src/hal/heltecv2.h
 // and https://github.com/cyberman54/ESP32-Paxcounter/blob/master/src/lorawan.cpp#L44
 #define LORA_IRQ DIO0
 #define LORA_IO1 DIO1
@@ -63,7 +66,6 @@ void os_getDevKey (u1_t* buf) { }
 #define LORA_MOSI MOSI
 #define LORA_RST RST_LoRa
 #define LORA_CS SS
-/*
 // see https://resource.heltec.cn/download/WiFi_LoRa_32/WIFI_LoRa_32_V2.pdf
 #define LORA_IRQ 26 // DIO0
 #define LORA_IO1 33
@@ -74,6 +76,17 @@ void os_getDevKey (u1_t* buf) { }
 #define LORA_RST 14
 #define LORA_CS 18
 */
+// Pin mapping
+// see https://github.com/cyberman54/ESP32-Paxcounter/blob/master/src/hal/ttgov21new.h
+// and https://github.com/cyberman54/ESP32-Paxcounter/blob/master/src/lorawan.cpp#L44
+#define LORA_SCK  (5)
+#define LORA_CS   (18)
+#define LORA_MISO (19)
+#define LORA_MOSI (27)
+#define LORA_RST  (23)
+#define LORA_IRQ  (26)
+#define LORA_IO1  (33)
+#define LORA_IO2  (32)
 const lmic_pinmap lmic_pins = {
 	.nss = LORA_CS,
 	.rxtx = LMIC_UNUSED_PIN,
@@ -100,7 +113,7 @@ void transmitPacket(uint16_t carCount, uint16_t truckCount)
 	packet.truckCount = truckCount;
 	packet.battery = analogRead(VBAT_PIN);
 
-	LOG(INFO, "Starting transmission...");
+	LOG(INFO, "Starting transmission (carCount = ", carCount, ", truckCount = ", truckCount, ")...");
 	LMIC_setTxData2(1, (uint8_t *)&packet, sizeof(vehicle_statistics_packet_t), 0);
 }
 
@@ -139,6 +152,10 @@ void setup()
 	LOG(DEBUG, "Turning off WiFi...");
 	WiFi.mode(WIFI_OFF);
 
+	LOG(DEBUG, "Initializing ultrasonic sensor...");
+	Wire.begin(21, 22, 100000);
+	startSensorReading();
+
 	LOG(DEBUG, "Initializing LMIC...");
 	os_init();
 	LMIC_reset();
@@ -162,9 +179,9 @@ void setup()
 	LMIC_setDrTxpow(LORAWAN_SPREADING, 14);
 
 	LOG(INFO, "Initialization done");
+	LOG(INFO, "MIN_SAMPLES_CAR == ", MIN_SAMPLES_CAR, ", MIN_SAMPLES_TRUCK == ", MIN_SAMPLES_TRUCK);
 
-	startSensorReading();
-	delay(100);
+	delay(110);
 }
 
 void loop()
@@ -176,21 +193,22 @@ void loop()
 
 	static uint32_t nextTransmit = TRANSMIT_FIRST;
 	uint32_t now = millis();
-	if(now > nextTransmit && (now < TRANSMIT_FIRST || nextTransmit > TRANSMIT_FIRST))
+	if(now >= nextTransmit && (now <= TRANSMIT_FIRST || nextTransmit >= TRANSMIT_FIRST))
 	{
 		transmitPacket(carCount, truckCount);
 		carCount = 0;
 		truckCount = 0;
+		nextTransmit = now + TRANSMIT_FIRST;
 	}
 
-	static uint16_t recentMaxReading = 0;
-	static bool carDetectionCount = 0;
+	static int16_t recentMaxReading = 0;
+	static uint16_t carDetectionCount = 0;
 
-	uint16_t distance = readDistance();
+	int16_t distance = readDistance();
 	startSensorReading(); // start a new reading to be read next time
 	if(distance != 0xffff)
 	{
-		LOG(DEBUG, "Distance reading: ", distance);
+		LOG(DEBUG, "Distance reading: ", distance, ", recentMax: ", recentMaxReading);
 		if(recentMaxReading - distance > 50)
 		{
 			carDetectionCount++;
@@ -205,20 +223,20 @@ void loop()
 			carDetectionCount = 0;
 		}
 
-		recentMaxReading -= 100;
-		if(distance > recentMaxReading)
-		{
-			LOG(DEBUG, "New max reading: ", distance);
+		if(abs(recentMaxReading - distance) < 10)
 			recentMaxReading = distance;
-		}
+		else if(distance < recentMaxReading && recentMaxReading > 10)
+			recentMaxReading -= 10;
+		else if(distance > recentMaxReading)
+			recentMaxReading += 10;
 	}
 	else
 	{
 		LOG(ERROR, "Failed reading data from sensor!");
 	}
 
-	// try to somewhat accurately run a measurement every 100ms
+	// try to somewhat accurately run a measurement every 110ms
 	uint32_t end = millis();
-	if(now + 100 > end)
-		delay(100 - (end - now));
+	if(now + 110 > end)
+		delay(110 - (end - now));
 }
