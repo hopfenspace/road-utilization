@@ -1,9 +1,10 @@
 from django.contrib import admin
 from django.urls import path
 
-from api import views
+from road_utilization import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/put', views.PutView.as_view())
+    path('api/put', views.PutView.as_view()),
+    path('api/import', views.ImportRoads.as_view())
 ]
