@@ -116,6 +116,7 @@ uint16_t readDistance()
 	if(Wire.available() != 2)
 		return 0xffff;
 
+	// read distance in cm as a big endian 16bit value
 	uint16_t ret = Wire.read() << 8;
 	ret |= Wire.read();
 	return ret;
@@ -138,7 +139,6 @@ void setup()
 	LOG(DEBUG, "Turning off WiFi...");
 	WiFi.mode(WIFI_OFF);
 
-	// LMIC init
 	LOG(DEBUG, "Initializing LMIC...");
 	os_init();
 	LMIC_reset();
@@ -162,6 +162,9 @@ void setup()
 	LMIC_setDrTxpow(LORAWAN_SPREADING, 14);
 
 	LOG(INFO, "Initialization done");
+
+	startSensorReading();
+	delay(100);
 }
 
 void loop()
@@ -183,9 +186,8 @@ void loop()
 	static uint16_t recentMaxReading = 0;
 	static bool carDetectionCount = 0;
 
-	startSensorReading();
-	delay(100);
 	uint16_t distance = readDistance();
+	startSensorReading(); // start a new reading to be read next time
 	if(distance != 0xffff)
 	{
 		LOG(DEBUG, "Distance reading: ", distance);
@@ -214,4 +216,9 @@ void loop()
 	{
 		LOG(ERROR, "Failed reading data from sensor!");
 	}
+
+	// try to somewhat accurately run a measurement every 100ms
+	uint32_t end = millis();
+	if(now + 100 > end)
+		delay(100 - (end - now));
 }
