@@ -1,9 +1,13 @@
 from django.http import HttpResponse
-from django.views.generic import TemplateView
+from django.views.generic.base import View
 
 
-class PutView(TemplateView):
+class PutView(View):
+
+    def get(self, request, *args, **kwargs):
+        print(request.GET)
+        return HttpResponse("", status=200)
 
     def post(self, request):
-        print(request.POST.__dict__)
+        print(request.POST)
         return HttpResponse("OK", status=200)
