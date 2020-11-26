@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime, tzinfo, timezone
 
 from django.http import HttpResponse, JsonResponse
 from django.views.generic.base import View
@@ -119,3 +119,43 @@ class GetSensorPositions(View):
                 "linked_road_stretch": sensor_position.road_stretch.osm_id
             }
         return JsonResponse(data, safe=False)
+
+
+class GetRoadUtilizationHistory(View):
+    def get(self, request, *args, **kwargs):
+        data = {
+            "success": True,
+            "result": {}
+        }
+        to_timestamp = None
+        from_timestamp = None
+        if "road_stretch" not in request.GET:
+            return JsonResponse({"success": False, "result": "Missing parameter: road_stretch"}, status=400)
+        else:
+            try:
+                print(request.GET["road_stretch"])
+                road_utilization = RoadUtilization.objects.get(road_stretch__osm_id=request.GET["road_stretch"])
+                raw_data = road_utilization.raw_data.all()
+                if "to" in request.GET:
+                    try:
+                        to_timestamp = datetime.fromtimestamp(int(request.GET["to"]), timezone.utc)
+                    except ValueError:
+                        return JsonResponse({"success": False, "result": "To is no valid unix epoch"}, status=400)
+                if "from" in request.GET:
+                    try:
+                        from_timestamp = datetime.fromtimestamp(int(request.GET["from"]), timezone.utc)
+                    except ValueError:
+                        return JsonResponse({"success": False, "result": "From is no valid unix epoch"}, status=400)
+                if from_timestamp:
+                    raw_data = [x for x in raw_data if x.timestamp > from_timestamp]
+                if to_timestamp:
+                    raw_data = [x for x in raw_data if x.timestamp < to_timestamp]
+                data["result"][request.GET["road_stretch"]] = [{"count_car": x.count_car,
+                                                                "count_truck": x.count_truck,
+                                                                "timestamp": int(x.timestamp.timestamp()),
+                                                                "battery": x.battery,
+                                                                "device": x.device.device_id} for x in raw_data]
+                return JsonResponse(data, safe=False, status=200)
+            except RoadUtilization.DoesNotExist:
+                return JsonResponse({"success": False, "result": "road_stretch not found"})
+
