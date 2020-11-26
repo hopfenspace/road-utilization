@@ -34,6 +34,16 @@ class PutView(View):
         )
         raw_data.save()
 
+        try:
+            sensor_position = SensorPosition.objects.get(device__device_id=data["dev_id"])
+            road_utilization = RoadUtilization.objects.get_or_create(
+                road_stretch=sensor_position.road_stretch,
+            )
+            road_utilization.raw_data.add(raw_data)
+            road_utilization.save()
+        except SensorPosition.DoesNotExist or RoadUtilization.DoesNotExist:
+            pass
+
         return HttpResponse("OK", status=200)
 
 
