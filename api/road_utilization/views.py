@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic.base import View
 
 from api import scripts
-from road_utilization.models import RawData, Device, RoadStretch, RoadUtilization
+from road_utilization.models import RawData, Device, RoadStretch, RoadUtilization, SensorPosition
 
 
 class ImportRoads(View):
@@ -89,5 +89,23 @@ class GetRoads(View):
         for road_stretch in road_stretch_objects:
             data["result"][road_stretch.osm_id] = {
                 "coordinates": [{"lat": x.lat, "long": x.lon} for x in road_stretch.coordinates.all()]
+            }
+        return JsonResponse(data, safe=False)
+
+
+class GetSensorPositions(View):
+    def get(self, request, *args, **kwargs):
+        data = {
+            "success": True,
+            "result": {}
+        }
+        sensor_positions = SensorPosition.objects.all()
+        for sensor_position in sensor_positions:
+            data["result"][sensor_position.device.device_id] = {
+                "coordinates": {
+                    "lat": sensor_position.coordinate.lat,
+                    "long": sensor_position.coordinate.lon
+                },
+                "linked_road_stretch": sensor_position.road_stretch.osm_id
             }
         return JsonResponse(data, safe=False)
