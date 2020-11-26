@@ -14,11 +14,6 @@ class Coordinate(Model):
     lon = FloatField(default=0)
 
 
-class SensorPosition(Model):
-    device = ForeignKey(Device, on_delete=CASCADE)
-    coordinate = ForeignKey(Coordinate, on_delete=CASCADE)
-
-
 class RawData(Model):
     device = ForeignKey(Device, on_delete=CASCADE)
     count_car = IntegerField(default=0)
@@ -42,6 +37,12 @@ class RoadStretch(Model):
 
     def __str__(self):
         return self.osm_id
+
+
+class SensorPosition(Model):
+    device = ForeignKey(Device, on_delete=CASCADE)
+    coordinate = ForeignKey(Coordinate, on_delete=CASCADE)
+    road_stretch = ForeignKey(RoadStretch, on_delete=CASCADE)
 
 
 class Road(Model):
