@@ -62,17 +62,17 @@ class GetRoadUtilization(View):
             except ValueError:
                 return JsonResponse({"success": False, "result": "Limit is no positive int"}, status=400)
 
-        road_stretches = [x.osm_id for x in RoadStretch.objects.all()] if not road_stretch_object else [road_stretch_object]
+        road_stretches = [x.osm_id for x in RoadStretch.objects.all()] if not road_stretch_object else [road_stretch_object.osm_id]
         for road_stretch in road_stretches:
             try:
                 raw_data_list = RoadUtilization.objects.get(road_stretch__osm_id=road_stretch).raw_data.all() if not limit \
             else RoadUtilization.objects.get(road_stretch__osm_id=road_stretch).raw_data.all().order_by("-id")[:limit]
-                data["result"][road_stretch.osm_id] = {
+                data["result"][road_stretch] = {
                    "count_car": sum([x.count_car for x in raw_data_list]),
                    "count_truck": sum([x.count_truck for x in raw_data_list])
                 }
             except RoadUtilization.DoesNotExist:
-                data["result"][road_stretch.osm_id] = {
+                data["result"][road_stretch] = {
                     "count_car": 0,
                     "count_truck": 0
                 }
