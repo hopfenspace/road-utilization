@@ -31,7 +31,7 @@ class RoadType(Model):
 
 
 class RoadStretch(Model):
-    osm_id = CharField(default="", max_length=255)
+    osm_id = CharField(default="", max_length=255, unique=True)
     road_type = ForeignKey(RoadType, on_delete=CASCADE)
     coordinates = ManyToManyField(Coordinate)
 
