@@ -51,3 +51,8 @@ class Road(Model):
 
     def __str__(self):
         return self.name
+
+
+class RoadUtilization(Model):
+    road_stretch = ForeignKey(RoadStretch, on_delete=CASCADE)
+    raw_data = ManyToManyField(RawData)
