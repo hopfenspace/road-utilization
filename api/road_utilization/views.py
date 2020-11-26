@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic.base import View
 
 from api import scripts
-from road_utilization.models import RawData, Device, RoadStretch
+from road_utilization.models import RawData, Device, RoadStretch, RoadUtilization
 
 
 class ImportRoads(View):
@@ -43,22 +43,39 @@ class GetRoadUtilization(View):
             "success": True,
             "result": {}
         }
-        if "road_stretch" not in request.GET:
-            return JsonResponse({"success": False, "result": "Please specify the parameter road_stretch"}, status=400)
-        osm_id = request.GET["road_stretch"]
-        try:
-            road_stretch_object = RoadStretch.objects.get(osm_id=osm_id)
-            data["result"]["osm_id"] = road_stretch_object.osm_id
-            data["result"]["coordinates"] = []
-            for coordinate in road_stretch_object.coordinates.all():
-                data["result"]["coordinates"].append({
-                    "lat": coordinate.lat,
-                    "long": coordinate.lon
-                })
-            data["result"]["road_type"] = road_stretch_object.road_type.highway_type
-        except RoadStretch.DoesNotExist:
-            return JsonResponse({"success": False, "result": f"RoadStretch was not found with osm_id {osm_id}"},
-                                status=400)
+        road_stretch_object = None
+        limit = None
+        if "road_stretch" in request.GET:
+            osm_id = request.GET["road_stretch"]
+            try:
+                road_stretch_object = RoadStretch.objects.get(osm_id=osm_id)
+            except RoadStretch.DoesNotExist:
+                return JsonResponse({
+                    "success": False,
+                    "result": f"RoadStretch was not found with osm_id {osm_id}"
+                }, status=400)
+        if "limit" in request.GET:
+            try:
+                limit = int(request.GET["limit"])
+                if limit <= 0:
+                    raise ValueError
+            except ValueError:
+                return JsonResponse({"success": False, "result": "Limit is no positive int"}, status=400)
+
+        road_stretches = [x.osm_id for x in RoadStretch.objects.all()] if not road_stretch_object else [road_stretch_object]
+        for road_stretch in road_stretches:
+            try:
+                raw_data_list = RoadUtilization.objects.get(road_stretch__osm_id=road_stretch).raw_data.all() if not limit \
+            else RoadUtilization.objects.get(road_stretch__osm_id=road_stretch).raw_data.all().order_by("-id")[:limit]
+                data["result"][road_stretch.osm_id] = {
+                   "count_car": sum([x.count_car for x in raw_data_list]),
+                   "count_truck": sum([x.count_truck for x in raw_data_list])
+                }
+            except RoadUtilization.DoesNotExist:
+                data["result"][road_stretch.osm_id] = {
+                    "count_car": 0,
+                    "count_truck": 0
+                }
         return JsonResponse(data, safe=False)
 
 
