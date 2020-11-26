@@ -37,7 +37,7 @@ class PutView(View):
         return HttpResponse("OK", status=200)
 
 
-class RoadUtilization(View):
+class GetRoadUtilization(View):
     def get(self, request, *args, **kwargs):
         data = {
             "success": True,
@@ -62,7 +62,7 @@ class RoadUtilization(View):
         return JsonResponse(data, safe=False)
 
 
-class Road(View):
+class GetRoads(View):
     def get(self, request, *args, **kwargs):
         data = {
             "success": True,
