@@ -5,7 +5,8 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic.base import View
 
 from api import scripts
-from road_utilization.models import RawData, Device, RoadStretch, RoadUtilization, SensorPosition, KeyValuePair
+from road_utilization.models import RawData, Device, RoadStretch, RoadUtilization, SensorPosition, KeyValuePair, \
+    CycleMapping
 
 
 class ImportRoads(View):
@@ -82,9 +83,14 @@ class GetRoadUtilization(View):
             try:
                 raw_data_list = RoadUtilization.objects.get(road_stretch__osm_id=road_stretch).raw_data.all() if not limit \
             else RoadUtilization.objects.get(road_stretch__osm_id=road_stretch).raw_data.all().order_by("-id")[:limit]
+                count_car = 0
+                count_truck = 0
+                for raw_data in raw_data_list:
+                    count_car += sum([y for y in raw_data if y in [x.cycle_time for x in CycleMapping.objects.filter(mapping="car")]])
+                    count_truck += sum([y for y in raw_data if y in [x.cycle_time for x in CycleMapping.objects.filter(mapping="truck")]])
                 data["result"][road_stretch] = {
-                   "count_car": sum([x.count_car for x in raw_data_list]),
-                   "count_truck": sum([x.count_truck for x in raw_data_list])
+                   "count_car": count_car,
+                   "count_truck": count_truck,
                 }
             except RoadUtilization.DoesNotExist:
                 data["result"][road_stretch] = {
