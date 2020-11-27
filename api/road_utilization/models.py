@@ -63,5 +63,5 @@ class RoadUtilization(Model):
 
 
 class CycleMapping(Model):
-    cycle_time = IntegerField(default=0)
+    cycle_time = IntegerField(default=0, unique=True)
     mapping = CharField(default="other", choices=[("car", "car"), ("truck", "truck"), ("other", "other")], max_length=255)
