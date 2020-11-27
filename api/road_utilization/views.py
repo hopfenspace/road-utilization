@@ -161,8 +161,9 @@ class GetRoadUtilizationHistory(View):
                     raw_data = [x for x in raw_data if x.timestamp > from_timestamp]
                 if to_timestamp:
                     raw_data = [x for x in raw_data if x.timestamp < to_timestamp]
-                data["result"][request.GET["road_stretch"]] = [{"count_car": x.count_car,
-                                                                "count_truck": x.count_truck,
+
+                data["result"][request.GET["road_stretch"]] = [{"count_car": sum([y.value for y in x.data.all() if y.key in [z.cycle_time for z in CycleMapping.objects.filter(mapping="car")]]),
+                                                                "count_truck": sum([y.value for y in x.data.all() if y.key in [z.cycle_time for z in CycleMapping.objects.filter(mapping="truck")]]),
                                                                 "timestamp": int(x.timestamp.timestamp()),
                                                                 "battery": x.battery,
                                                                 "device": x.device.device_id} for x in raw_data]
