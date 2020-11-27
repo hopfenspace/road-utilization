@@ -86,8 +86,8 @@ class GetRoadUtilization(View):
                 count_car = 0
                 count_truck = 0
                 for raw_data in raw_data_list:
-                    count_car += sum([y for y in raw_data if y in [x.cycle_time for x in CycleMapping.objects.filter(mapping="car")]])
-                    count_truck += sum([y for y in raw_data if y in [x.cycle_time for x in CycleMapping.objects.filter(mapping="truck")]])
+                    count_car += sum([y.value for y in raw_data.data.all() if y.key in [x.cycle_time for x in CycleMapping.objects.filter(mapping="car")]])
+                    count_truck += sum([y.value for y in raw_data.data.all() if y.key in [x.cycle_time for x in CycleMapping.objects.filter(mapping="truck")]])
                 data["result"][road_stretch] = {
                    "count_car": count_car,
                    "count_truck": count_truck,
