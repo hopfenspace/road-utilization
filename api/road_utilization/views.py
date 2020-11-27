@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.generic.base import View
 
 from api import scripts
-from road_utilization.models import RawData, Device, RoadStretch, RoadUtilization, SensorPosition
+from road_utilization.models import RawData, Device, RoadStretch, RoadUtilization, SensorPosition, KeyValuePair
 
 
 class ImportRoads(View):
@@ -27,18 +27,16 @@ class PutView(View):
         raw_data = RawData(
             rssi=data["metadata"]["gateways"][0]["rssi"],
             timestamp=time,
-            vehicle_1=data["payload_fields"]["vehicle_1"],
-            vehicle_2=data["payload_fields"]["vehicle_2"],
-            vehicle_3=data["payload_fields"]["vehicle_3"],
-            vehicle_4=data["payload_fields"]["vehicle_4"],
-            vehicle_5=data["payload_fields"]["vehicle_5"],
-            vehicle_6=data["payload_fields"]["vehicle_6"],
-            vehicle_7=data["payload_fields"]["vehicle_7"],
-            vehicle_8=data["payload_fields"]["vehicle_8"],
-            vehicle_9=data["payload_fields"]["vehicle_9"],
             battery=data["payload_fields"]["battery"],
             device=device
         )
+        for measurement in data["payload_fields"]["vehicles"]:
+            kvp = KeyValuePair(
+                key=int(measurement),
+                value=int(data["payload_fields"]["vehicles"][measurement])
+            )
+            kvp.save()
+            raw_data.data.add(kvp)
         raw_data.save()
 
         try:

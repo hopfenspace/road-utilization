@@ -14,17 +14,14 @@ class Coordinate(Model):
     lon = FloatField(default=0)
 
 
+class KeyValuePair(Model):
+    key = IntegerField(default=0, unique=True)
+    value = IntegerField(default=0)
+
+
 class RawData(Model):
     device = ForeignKey(Device, on_delete=CASCADE)
-    vehicle_1 = IntegerField(default=0)
-    vehicle_2 = IntegerField(default=0)
-    vehicle_3 = IntegerField(default=0)
-    vehicle_4 = IntegerField(default=0)
-    vehicle_5 = IntegerField(default=0)
-    vehicle_6 = IntegerField(default=0)
-    vehicle_7 = IntegerField(default=0)
-    vehicle_8 = IntegerField(default=0)
-    vehicle_9 = IntegerField(default=0)
+    data = ManyToManyField(KeyValuePair)
     battery = FloatField(default=0)
     timestamp = DateTimeField()
     rssi = IntegerField(default=0)
