@@ -60,3 +60,8 @@ class Road(Model):
 class RoadUtilization(Model):
     road_stretch = ForeignKey(RoadStretch, on_delete=CASCADE)
     raw_data = ManyToManyField(RawData)
+
+
+class CycleMapping(Model):
+    cycle_time = IntegerField(default=0)
+    mapping = CharField(default="other", choices=[("car", "car"), ("truck", "truck"), ("other", "other")], max_length=255)
