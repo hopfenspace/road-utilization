@@ -1,6 +1,6 @@
 var streetTypes = {
-	"living_street": 1,
-	"residential": 2,
+	"living_street": -1,
+	"residential": -2,
 	"tertiary": 3,
 	"secondary": 5,
 	"primary": 7,
@@ -8,7 +8,7 @@ var streetTypes = {
 
 var mainMap = L.map('mainmap', {
 	minZoom: 10,
-	maxZoom: 20,
+	maxZoom: 18,
 	maxBounds: [
 		[51, 8],
 		[46, 15.5],
@@ -33,20 +33,25 @@ function render(streets, traffic)
 		usage = (usage.count_truck * 3 + usage.count_car) / maxUsage;
 
 		var color;
-		if(usage < 0.3)
-			color = "green";
-		else if(usage < 0.6)
-			color = "orange";
+		if(usage < 0.5)
+			color = "rgb(" + (usage * 2 * 255) + ", 150, 0)";
 		else
-			color = "red";
+			color = "rgb(255, " + ((1 - usage * 2) * 150) + ", 0)";
 
-		var width = 20;
-		if(streetTypes.hasOwnProperty(street.type))
-			width = streetTypes[street.type];
+		var width = 3;
+		if(streetTypes.hasOwnProperty(street.road_type))
+			width = streetTypes[street.road_type];
+
+		if(width < 0)
+		{
+			color = "grey";
+			width = -width;
+		}
 
 		var latLongs = street.coordinates.map(x => [x.lat, x.long]);
 		L.polyline(latLongs, {
 				color: color,
+				weight: width,
 				fillOpacity: 0.7
 			})
 			.addTo(mainMap);
