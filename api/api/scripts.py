@@ -14,9 +14,8 @@ def import_roads():
 
             coordinate_list = []
             for coordinate_data in road["geometry"]["coordinates"]:
-                coordinate, created = Coordinate.objects.get_or_create(lat=coordinate_data[1], lon=coordinate_data[0])
-                if created:
-                    coordinate.save()
+                coordinate = Coordinate.objects.create(lat=coordinate_data[1], lon=coordinate_data[0])
+                coordinate.save()
                 coordinate_list.append(coordinate)
 
             name = road["properties"]["loc_name"] if "loc_name" in road["properties"] else road["properties"]["name"] if "name" in road["properties"] else road["properties"]["@id"]
