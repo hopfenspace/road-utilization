@@ -110,7 +110,7 @@ class GetRoads(View):
         for road_stretch in road_stretch_objects:
             data["result"][road_stretch.osm_id] = {
                 "coordinates": [{"lat": x.lat, "long": x.lon} for x in road_stretch.coordinates.all().order_by("id")],
-                "road_type": road_stretch.road_type
+                "road_type": road_stretch.road_type.highway_type
             }
         return JsonResponse(data, safe=False)
 
