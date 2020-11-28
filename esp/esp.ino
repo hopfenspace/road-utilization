@@ -37,9 +37,8 @@
 
 typedef struct __attribute__((packed))
 {
-	uint16_t carCount;
-	uint16_t truckCount;
 	uint16_t battery;
+	uint16_t vehicleCounts[9];
 } vehicle_statistics_packet_t;
 
 SSD1306 display (OLED_I2C_ADDR, OLED_SDA, OLED_SCL);
@@ -105,16 +104,10 @@ void onEvent (ev_t ev)
 	}
 }
 
-void transmitPacket(uint16_t carCount, uint16_t truckCount)
+void transmitPacket(vehicle_statistics_packet_t *packet)
 {
-	vehicle_statistics_packet_t packet;
-
-	packet.carCount = carCount;
-	packet.truckCount = truckCount;
-	packet.battery = analogRead(VBAT_PIN);
-
-	LOG(INFO, "Starting transmission (carCount = ", carCount, ", truckCount = ", truckCount, ")...");
-	LMIC_setTxData2(1, (uint8_t *)&packet, sizeof(vehicle_statistics_packet_t), 0);
+	LOG(INFO, "Starting transmission...");
+	LMIC_setTxData2(1, (uint8_t *)packet, sizeof(vehicle_statistics_packet_t), 0);
 }
 
 void startSensorReading()
@@ -188,16 +181,17 @@ void loop()
 {
 	os_runloop_once();
 
-	static uint16_t carCount = 0;
-	static uint16_t truckCount = 0;
+	static vehicle_statistics_packet_t packet;
 
 	static uint32_t nextTransmit = TRANSMIT_FIRST;
 	uint32_t now = millis();
 	if(now >= nextTransmit && (now <= TRANSMIT_FIRST || nextTransmit >= TRANSMIT_FIRST))
 	{
-		transmitPacket(carCount, truckCount);
-		carCount = 0;
-		truckCount = 0;
+		packet.battery = analogRead(VBAT_PIN);
+		transmitPacket(&packet);
+
+		for(int i = 0; i < 9; i++)
+			packet.vehicleCounts[i] = 0;
 		nextTransmit = now + TRANSMIT_FIRST;
 	}
 
@@ -216,10 +210,11 @@ void loop()
 		else if(carDetectionCount != 0)
 		{
 			LOG(INFO, "Detected vehicle blocking for ", carDetectionCount, " cycles");
-			if(carDetectionCount > MIN_SAMPLES_TRUCK)
-				truckCount++;
-			else if(carDetectionCount > MIN_SAMPLES_CAR)
-				carCount++;
+			carDetectionCount--;
+			if(carDetectionCount < 8)
+				packet.vehicleCounts[carDetectionCount]++;
+			else
+				packet.vehicleCounts[8]++;
 			carDetectionCount = 0;
 		}
 
