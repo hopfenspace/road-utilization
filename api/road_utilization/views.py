@@ -191,7 +191,7 @@ class SetSensorPositionView(View):
         device, created = Device.objects.get_or_create(device_id=device_name)
         if created:
             device.save()
-        coordinate_obj, _ = Coordinate.objects.get_or_create(
+        coordinate_obj = Coordinate.objects.create(
             lat=coordinate["lat"],
             lon=coordinate["lon"]
         )
