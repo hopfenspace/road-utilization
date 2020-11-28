@@ -1,12 +1,12 @@
 import json
-from datetime import datetime, tzinfo, timezone
+from datetime import datetime, timezone
 
 from django.http import HttpResponse, JsonResponse
 from django.views.generic.base import View
 
 from api import scripts
 from road_utilization.models import RawData, Device, RoadStretch, RoadUtilization, SensorPosition, KeyValuePair, \
-    CycleMapping
+    CycleMapping, Coordinate
 
 
 class ImportRoads(View):
@@ -172,3 +172,37 @@ class GetRoadUtilizationHistory(View):
             except RoadUtilization.DoesNotExist:
                 return JsonResponse({"success": False, "result": "road_stretch not found"})
 
+
+class SetSensorPositionView(View):
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+        except json.decoder.JSONDecodeError:
+            return JsonResponse({"success": False, "result": "No valid json found in body"})
+        if "device" not in data or "coordinate" not in data or "linked_road_stretch" not in data:
+            return JsonResponse({"success": False, "result": "Required parameter(s) not found"}, status=400)
+        device_name = data["device"]
+        coordinate = {
+            "lat": data["coordinate"]["lat"],
+            "lon": data["coordinate"]["lon"]
+        }
+        linked_road_stretch = data["linked_road_stretch"]
+
+        device, created = Device.objects.get_or_create(device_id=device_name)
+        if created:
+            device.save()
+        coordinate_obj, _ = Coordinate.objects.get_or_create(
+            lat=coordinate["lat"],
+            lon=coordinate["lon"]
+        )
+        sensor_position, created = SensorPosition.objects.get_or_create(device=device)
+        coordinate_obj.save()
+        sensor_position.coordinate = coordinate_obj
+        try:
+            road_stretch = RoadStretch.objects.get(osm_id=linked_road_stretch)
+        except RoadStretch.DoesNotExist:
+            return JsonResponse({"success": False, "result": f"No RoadStretch with id {linked_road_stretch} found"}, status=400)
+        sensor_position.road_stretch = road_stretch
+        sensor_position.save()
+
+        return JsonResponse({"success": "true", "result": "ok"})

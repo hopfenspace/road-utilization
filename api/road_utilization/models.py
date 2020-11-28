@@ -45,8 +45,8 @@ class RoadStretch(Model):
 
 class SensorPosition(Model):
     device = ForeignKey(Device, on_delete=CASCADE)
-    coordinate = ForeignKey(Coordinate, on_delete=CASCADE)
-    road_stretch = ForeignKey(RoadStretch, on_delete=CASCADE)
+    coordinate = ForeignKey(Coordinate, on_delete=CASCADE, null=True)
+    road_stretch = ForeignKey(RoadStretch, on_delete=CASCADE, null=True)
 
 
 class Road(Model):

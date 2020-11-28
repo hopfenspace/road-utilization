@@ -10,5 +10,6 @@ urlpatterns = [
     path('api/getRoadUtilization', views.GetRoadUtilization.as_view()),
     path('api/getRoads', views.GetRoads.as_view()),
     path('api/getSensorPositions', views.GetSensorPositions.as_view()),
-    path('api/getRoadUtilizationHistory', views.GetRoadUtilizationHistory.as_view())
+    path('api/getRoadUtilizationHistory', views.GetRoadUtilizationHistory.as_view()),
+    path('api/setSensorPosition', views.SetSensorPositionView.as_view())
 ]
