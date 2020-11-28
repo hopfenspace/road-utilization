@@ -128,15 +128,18 @@ if __name__ == "__main__":
     packet_count = int(sys.argv[2])
     sleep_time = int(sys.argv[3])
 
+    code_of_execution = random.randint(1000, 100000)
+
     senders = [
         RandomTrafficGenerator(
-            f"random_data_generator_{k}_{random.randint(1000, 100000)}",
+            f"random_data_generator_{k}_{code_of_execution}",
             *RandomTrafficGenerator.find_random_position()
         )
         for k in range(sender_count)
     ]
 
     for c in range(packet_count):
+        if c != 0:
+            time.sleep(sleep_time)
         [r.send_data() for r in senders]
-        time.sleep(sleep_time)
 
