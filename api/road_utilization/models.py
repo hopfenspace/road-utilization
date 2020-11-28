@@ -15,7 +15,7 @@ class Coordinate(Model):
 
 
 class KeyValuePair(Model):
-    key = IntegerField(default=0, unique=True)
+    key = IntegerField(default=0)
     value = IntegerField(default=0)
 
 
