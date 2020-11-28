@@ -13,7 +13,7 @@ device_id = "random_data_generator"
 def generate_vehicle_data() -> dict:
     """Generate random vehicle data"""
 
-    return {str(k): random.randint(0, 5) for k in range(1, random.randint(0, 10)}
+    return {str(k): random.randint(0, 5) for k in range(1, random.randint(0, 10))}
 
 
 def generate_payload() -> dict:
@@ -22,7 +22,7 @@ def generate_payload() -> dict:
     return {
         "dev_id": device_id,
         "payload_fields": {
-            "battery": random.random() * 100,
+            "battery": round(random.random() * 100, 3),
             "vehicles": generate_vehicle_data()
         },
         "metadata": {
