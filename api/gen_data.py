@@ -110,13 +110,23 @@ class RandomTrafficGenerator:
 
 
 if __name__ == "__main__":
-    count = 10
-    if len(sys.argv) > 1:
-        count = int(sys.argv[1])
-    [
+    if len(sys.argv) != 4:
+        print("usage: gen_data.py [sender_count] [packet_count] [sleep_time]")
+        exit(1)
+
+    sender_count = int(sys.argv[1])
+    packet_count = int(sys.argv[2])
+    sleep_time = int(sys.argv[3])
+
+    senders = [
         RandomTrafficGenerator(
-            f"random_data_generator_{k}_{random.randint(1000, 100000)}"
+            f"random_data_generator_{k}_{random.randint(1000, 100000)}",
+            *RandomTrafficGenerator.find_random_position()
         )
-        for k in range(count)
+        for k in range(sender_count)
     ]
+
+    for c in range(packet_count):
+        [r.send_data() for r in senders]
+        time.sleep(sleep_time)
 
