@@ -2,16 +2,43 @@
 	<head>
         <meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <meta name="robots" content="index, nofollow" />
+		<meta name="robots" content="index, nofollow" />
 
-		<title>Straßenauslastung</title>
+		<title>Current road utilization</title>
 		<link rel="stylesheet" href="vendor/leaflet.css" />
+		<style>
+			body {
+				margin: 0;
+				height: 100vh;
+				overflow-y: hidden;
+			}
+
+			#header {
+				width: 100%;
+				height: 32px;
+				text-align: center;
+			}
+
+			#header h1 {
+				font-size: 120%;
+				font-weight: 200;
+				margin-top: 10px;
+				margin-bottom: 4px;
+			}
+
+			#mainmap {
+				width: 100%;
+				height: calc(100% - 42px);
+			}
+		</style>
 	</head>
 	<body>
+		<noscript>Bitte aktivieren Sie Javascript, um diese Seite anzusehen.</noscript>
+		<div id="header">
+			<h1>Current road utilization</h1>
+		</div>
 
-		<noscript>Bitte aktivieren sie Javascript um diese Seite anzusehen.</noscript>
-
-		<div id="mainmap" style="height: 100%; width: 100%;"></div>
+		<div id="mainmap"></div>
 
 		<script src="vendor/leaflet.js"></script>
 		<script src="index.js"></script>
