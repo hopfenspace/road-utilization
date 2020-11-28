@@ -25,7 +25,7 @@ class PutView(View):
         datetime_string = data["metadata"]["time"]
         datetime_string = datetime_string.split('.')[0]
         time = datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S")
-        raw_data = RawData(
+        raw_data = RawData.objects.create(
             rssi=data["metadata"]["gateways"][0]["rssi"],
             timestamp=time,
             battery=data["payload_fields"]["battery"],
