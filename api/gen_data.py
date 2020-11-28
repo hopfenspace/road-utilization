@@ -2,6 +2,7 @@
 
 import sys
 import json
+import time
 import random
 import datetime
 
@@ -55,7 +56,7 @@ class RandomTrafficGenerator:
     def set_position(self):
         """Tell the sensor's position to the backend"""
 
-        r = requests.post(
+        response = requests.post(
             self.base_url + "setSensorPosition",
             json={
                 "device": self.device_id,
@@ -64,18 +65,22 @@ class RandomTrafficGenerator:
             },
             headers={"User-Agent": "curl/7.52.1"}
         )
-        print("set_position", r)
-        print(r.text)
+        print(f"set_position: {response} for {self}")
 
     def send_data(self):
         """Send randomly generated payload data to the backend"""
 
-        self.response = requests.post(
+        response = requests.post(
             self.base_url + "put",
             json=generate_payload(self.device_id),
             headers={"User-Agent": "curl/7.52.1"}
         )
-        print("send_data", self.response)
+        print(f"send_data: {response} for {self}")
+
+    def __repr__(self) -> str:
+        """Get a basic string representation of self"""
+
+        return f"<RTG {self.device_id}@{self.road_stretch}>"
 
     @classmethod
     def get_all_roads(cls) -> dict:
@@ -85,6 +90,7 @@ class RandomTrafficGenerator:
             cls.base_url + "getRoads",
             headers={"User-Agent": "curl/7.52.1"}
         )
+        print(f"get_all_roads: {response} for {cls}")
         content = json.loads(response.content)
         if not content["success"]:
             raise RuntimeError("Error fetching data from /getRoads")
@@ -107,6 +113,10 @@ class RandomTrafficGenerator:
         if cls.cached_roads is None or cls.cached_road_keys is None:
             cls.cached_roads = cls.get_roads()
             cls.cached_road_keys = list(cls.cached_roads.keys())
+
+        road_key = random.choice(cls.cached_road_keys)
+        coords = random.choice(cls.cached_roads[road_key]["coordinates"])
+        return coords, road_key
 
 
 if __name__ == "__main__":
