@@ -13,7 +13,7 @@ var mainMap = L.map('mainmap', {
 		[51, 8],
 		[46, 15.5],
 	],
-}).setView([48.5300, 11.5056], 15);
+}).setView([48.7640, 11.4290], 15);
 
 L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png ', {
 	subdomains: 'abc',
@@ -48,8 +48,7 @@ function render(streets, traffic)
 			width = -width;
 		}
 
-		var latLongs = street.coordinates.map(x => [x.lat, x.long]);
-		L.polyline(latLongs, {
+		L.polyline(street.coordinates, {
 				color: color,
 				weight: width,
 				fillOpacity: 0.7
