@@ -32,11 +32,12 @@ class PutView(View):
             device=device
         )
         for measurement in data["payload_fields"]["vehicles"]:
-            kvp = KeyValuePair(
+            kvp, created = KeyValuePair.objects.get_or_create(
                 key=int(measurement),
                 value=int(data["payload_fields"]["vehicles"][measurement])
             )
-            kvp.save()
+            if created:
+                kvp.save()
             raw_data.data.add(kvp)
         raw_data.save()
 
