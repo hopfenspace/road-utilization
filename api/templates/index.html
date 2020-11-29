@@ -1,11 +1,12 @@
-<html>
+<html lang="US-us">
 	<head>
         <meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="robots" content="index, nofollow" />
 
 		<title>Current road utilization</title>
-		<link rel="stylesheet" href="vendor/leaflet.css" />
+        {% load static %}
+		<link rel="stylesheet" href="{% static 'vendor/leaflet.css' %}" />
 		<style>
 			body {
 				margin: 0;
@@ -40,7 +41,7 @@
 
 		<div id="mainmap"></div>
 
-		<script src="vendor/leaflet.js"></script>
-		<script src="index.js"></script>
+		<script src="{% static 'vendor/leaflet.js' %}"></script>
+		<script src="{% static 'index.js' %}"></script>
 	</body>
 </html>
