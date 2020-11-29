@@ -57,6 +57,15 @@ function render(streets, traffic)
 	}
 }
 
+var streetPath = "/api/getRoads";
+var dataPath = "/api/getUtilization";
+
+if(document.location.hostname === "localhost")
+{
+	streetPath = "streets.json";
+	dataPath = "data.json";
+}
+
 Promise.all([
 	fetch('streets.json')
 		.then(res => res.json()),
