@@ -47,6 +47,8 @@ class PutView(View):
                 road_stretch=sensor_position.road_stretch,
             )
             road_utilization.raw_data.add(raw_data)
+            road_utilization.count_cars += sum([x.value for x in raw_data.data.all() if x.key in [y.cycle_time for y in CycleMapping.objects.filter(mapping="car")]])
+            road_utilization.count_trucks += sum([x.value for x in raw_data.data.all() if x.key in [y.cycle_time for y in CycleMapping.objects.filter(mapping="truck")]])
             road_utilization.save()
         except SensorPosition.DoesNotExist or RoadUtilization.DoesNotExist:
             pass
@@ -82,13 +84,9 @@ class GetRoadUtilization(View):
         road_stretches = [x.osm_id for x in RoadStretch.objects.all()] if not road_stretch_object else [road_stretch_object.osm_id]
         for road_stretch in road_stretches:
             try:
-                raw_data_list = RoadUtilization.objects.get(road_stretch__osm_id=road_stretch).raw_data.all() if not limit \
-            else RoadUtilization.objects.get(road_stretch__osm_id=road_stretch).raw_data.all().order_by("-id")[:limit]
-                count_car = 0
-                count_truck = 0
-                for raw_data in raw_data_list:
-                    count_car += sum([y.value for y in raw_data.data.all() if y.key in [x.cycle_time for x in CycleMapping.objects.filter(mapping="car")]])
-                    count_truck += sum([y.value for y in raw_data.data.all() if y.key in [x.cycle_time for x in CycleMapping.objects.filter(mapping="truck")]])
+                road_utilization = RoadUtilization.objects.get(road_stretch__osm_id=road_stretch)
+                count_car = road_utilization.count_cars
+                count_truck = road_utilization.count_trucks
                 data["result"][road_stretch] = {
                    "count_car": count_car,
                    "count_truck": count_truck,

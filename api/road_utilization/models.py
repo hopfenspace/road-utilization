@@ -60,6 +60,8 @@ class Road(Model):
 class RoadUtilization(Model):
     road_stretch = ForeignKey(RoadStretch, on_delete=CASCADE)
     raw_data = ManyToManyField(RawData)
+    count_cars = IntegerField(default=0)
+    count_trucks = IntegerField(default=0)
 
 
 class CycleMapping(Model):
