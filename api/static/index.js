@@ -58,7 +58,7 @@ function render(streets, traffic)
 }
 
 var streetPath = "/api/getRoads";
-var dataPath = "/api/getUtilization";
+var dataPath = "/api/getRoadUtilization";
 
 if(document.location.hostname === "localhost")
 {
@@ -67,9 +67,9 @@ if(document.location.hostname === "localhost")
 }
 
 Promise.all([
-	fetch('streets.json')
+	fetch(streetPath)
 		.then(res => res.json()),
-	fetch('data.json', {cache: "no-cache"})
+	fetch(dataPath, {cache: "no-cache"})
 		.then(res => res.json()),
 ])
 	.then(([streets, traffic]) => render(streets.result, traffic.result));
